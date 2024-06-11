@@ -1,0 +1,48 @@
+import pymqi
+import random
+import string
+import json
+
+# Connection details
+queue_manager = 'QM1'  # Name of the Queue Manager
+channel = 'DEV.APP.SVRCONN'  # Channel name
+host = 'localhost'  # Hostname or IP address of the IBM MQ server
+port = '1414'  # Port number
+queue_name = 'QUEUE1'  # Name of the queue to send messages to
+user = 'mqm'  # User name
+password = 'password'  # Password
+conn_info = f'{host}({port})'  # Connection string
+
+# Create a connection
+cd = pymqi.CD()
+cd.ChannelName = channel  # Set the channel name
+cd.ConnectionName = conn_info  # Set the connection info
+
+sco = pymqi.SCO()
+qmgr = pymqi.QueueManager(None)  # Create Queue Manager object
+
+# Set up authentication and connect to the Queue Manager
+opts = pymqi.CMQC.MQCNO_HANDLE_SHARE_BLOCK
+qmgr.connect_with_options(queue_manager, user=user, password=password, cd=cd, sco=sco, options=opts)
+
+# Function to generate random dummy messages
+def generate_dummy_message(size=100):
+    """Generate a random dummy message of specified size."""
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=size))
+
+# Open the queue
+queue = pymqi.Queue(qmgr, queue_name)
+
+# Number of messages to send
+num_messages = 1000
+
+# Loop to send messages
+for i in range(num_messages):
+    message = generate_dummy_message()  # Generate a dummy message
+    queue.put(message)  # Send the message to the queue
+
+print(f'Successfully sent {num_messages} messages to the queue {queue_name}.')
+
+# Close the queue and disconnect from the Queue Manager
+queue.close()
+qmgr.disconnect()
