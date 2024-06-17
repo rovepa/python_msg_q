@@ -1,0 +1,49 @@
+# effective way to xml file has a,b,c elements. we need to generate 50000 xml files. a,b value should be same and c value should be doubled every time and store in a new folder.
+
+import os
+import xml.etree.ElementTree as ET
+
+def generate_xml_files(base_xml_path, output_folder, num_files):
+    # Parse the base XML file
+    tree = ET.parse(base_xml_path)
+    root = tree.getroot()
+
+    # Get the values of elements a, b, and c from the base XML
+    value_a = root.find('a').text
+    value_b = root.find('b').text
+    base_value_c = int(root.find('c').text)
+
+    # Create the output folder if it doesn't exist
+    os.makedirs(output_folder, exist_ok=True)
+
+    for i in range(1, num_files + 1):
+        # Create a new XML element tree
+        new_root = ET.Element("root")
+
+        # Create elements a, b, and c
+        new_a = ET.SubElement(new_root, "a")
+        new_a.text = value_a
+
+        new_b = ET.SubElement(new_root, "b")
+        new_b.text = value_b
+
+        new_c = ET.SubElement(new_root, "c")
+        new_c_value = base_value_c * (2 ** (i - 1))  # Doubling value for each file
+        new_c.text = str(new_c_value)
+
+        # Create the tree and write to file
+        new_tree = ET.ElementTree(new_root)
+        xml_file_path = os.path.join(output_folder, f"generatedXML{i}.xml")
+        new_tree.write(xml_file_path, encoding='utf-8', xml_declaration=True)
+
+        print(f"Generated XML file: {xml_file_path}")
+
+# Example usage
+if __name__ == "__main__":
+    base_xml_file = "base.xml"  # Path to your base XML file
+    output_directory = "output"  # Folder to save generated XML files
+    number_of_files = 50000
+
+    generate_xml_files(base_xml_file, output_directory, number_of_files)
+
+
