@@ -1,0 +1,99 @@
+import com.ibm.mq.*;
+import com.ibm.mq.constants.CMQC;
+import com.ibm.mq.constants.MQConstants;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+
+public class XMLToIBMMQ {
+
+    public static void main(String[] args) {
+        try {
+            // Parse the base XML file
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+
+            // Setup IBM MQ environment
+            MQEnvironment.hostname = "your.mq.hostname";  // Hostname of the MQ server
+            MQEnvironment.port = 1414;  // Port number of the MQ server
+            MQEnvironment.channel = "YOUR.SVRCONN.CHANNEL";  // Server connection channel name
+            MQEnvironment.userID = "your_username";  // MQ username
+            MQEnvironment.password = "your_password";  // MQ password
+
+            // Create connection to MQ manager
+            MQQueueManager queueManager = new MQQueueManager("QMGR_NAME");
+
+            // Get the values of elements a, b, and c from the base XML
+            Document doc = dBuilder.newDocument();
+            Element rootElement = doc.createElement("root");
+            doc.appendChild(rootElement);
+
+            // Create elements a, b, and c
+            Element elementA = doc.createElement("a");
+            elementA.appendChild(doc.createTextNode("valueA"));
+            rootElement.appendChild(elementA);
+
+            Element elementB = doc.createElement("b");
+            elementB.appendChild(doc.createTextNode("valueB"));
+            rootElement.appendChild(elementB);
+
+            Element elementC = doc.createElement("c");
+            elementC.appendChild(doc.createTextNode("1"));
+            rootElement.appendChild(elementC);
+
+            // Setup IBM MQ message
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            transformer.transform(new DOMSource(doc), new StreamResult(baos));
+            byte[] message = baos.toByteArray();
+
+            // Define MQ queue and put message
+            int openOptions = MQConstants.MQOO_OUTPUT | MQConstants.MQOO_FAIL_IF_QUIESCING;
+            MQQueue mqQueue = queueManager.accessQueue("QUEUE_NAME", openOptions);
+            MQMessage mqMessage = new MQMessage();
+            mqMessage.format = MQConstants.MQFMT_STRING;
+            mqMessage.write(message);
+            MQPutMessageOptions putOptions = new MQPutMessageOptions();
+            mqQueue.put(mqMessage, putOptions);
+            mqQueue.close();
+
+            // Disconnect from MQ manager
+            queueManager.disconnect();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+# Explanation:
+IBM MQ Environment Setup:
+
+MQEnvironment: Sets up the connection parameters (hostname, port, channel, userID, password) for connecting to the IBM MQ server. Replace these values with your actual IBM MQ server details.
+XML Generation:
+
+The XML generation part remains similar to before, where you create XML elements (a, b, c) and their values.
+Transform XML to Message Payload:
+
+The XML document (doc) is transformed into a byte array (message) using a Transformer and ByteArrayOutputStream.
+IBM MQ Connection and Message Sending:
+
+MQQueueManager: Establishes a connection to the IBM MQ queue manager (QMGR_NAME).
+MQQueue: Accesses the specific queue (QUEUE_NAME) where you want to send the message.
+MQMessage: Represents the message to be sent, formatted as MQFMT_STRING.
+MQPutMessageOptions: Specifies options for putting the message (putOptions).
+Exception Handling:
+
+Proper exception handling (try-catch) is implemented to manage errors that may occur during connection, message sending, or disconnecting from IBM MQ.
+Notes:
+IBM MQ Client JARs: Ensure you have included the necessary IBM MQ client libraries (com.ibm.mq.allclient.jar, etc.) in your Java project's classpath.
+Security Considerations: Always use encrypted connections (TLS) and secure credential management (userID and password).
+Error Handling: Implement robust error handling and logging for production-level code.
+This code provides a basic framework to connect to IBM MQ, generate XML content, transform it into a message payload, and send it to a designated queue within the IBM MQ infrastructure. Adjust the hostname, port, channel, credentials, queue manager, and queue names as per your specific IBM MQ setup.
