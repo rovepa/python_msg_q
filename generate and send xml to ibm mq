@@ -1,0 +1,90 @@
+# To store the generated XML files in IBM MQ (Message Queue), you typically convert each XML file into a message and then send that message to a queue in IBM MQ.
+
+import pymqi
+import os
+import xml.etree.ElementTree as ET
+
+def send_xml_to_mq(queue_manager, queue_name, base_xml_path, num_files):
+    # Connect to IBM MQ
+    qmgr = pymqi.connect(queue_manager)
+
+    # Parse the base XML file
+    tree = ET.parse(base_xml_path)
+    root = tree.getroot()
+
+    # Get the values of elements a, b, and c from the base XML
+    value_a = root.find('a').text
+    value_b = root.find('b').text
+    base_value_c = int(root.find('c').text)
+
+    for i in range(1, num_files + 1):
+        # Create a new XML element tree
+        new_root = ET.Element("root")
+
+        # Create elements a, b, and c
+        new_a = ET.SubElement(new_root, "a")
+        new_a.text = value_a
+
+        new_b = ET.SubElement(new_root, "b")
+        new_b.text = value_b
+
+        new_c = ET.SubElement(new_root, "c")
+        new_c_value = base_value_c * (2 ** (i - 1))  # Doubling value for each file
+        new_c.text = str(new_c_value)
+
+        # Create XML string
+        xml_string = ET.tostring(new_root, encoding='utf-8', method='xml')
+
+        # Send XML message to IBM MQ queue
+        put_queue = pymqi.Queue(qmgr, queue_name)
+        put_queue.put(xml_string)
+        put_queue.close()
+
+        print(f"Sent XML message {i} to IBM MQ")
+
+    # Disconnect from IBM MQ
+    qmgr.disconnect()
+
+# Example usage
+if __name__ == "__main__":
+    queue_manager = "QMGR_NAME"  # Queue manager name
+    queue_name = "QUEUE_NAME"    # Queue name
+    base_xml_file = "base.xml"   # Path to your base XML file
+    number_of_files = 50000      # Number of XML files to generate
+
+    send_xml_to_mq(queue_manager, queue_name, base_xml_file, number_of_files)
+
+# Explanation:
+IBM MQ Connection Setup (pymqi):
+
+Import pymqi library to interact with IBM MQ.
+Connect to the IBM MQ queue manager (qmgr = pymqi.connect(queue_manager)).
+Generating XML Messages:
+
+Iterate through the loop to generate XML files as messages.
+Instead of writing XML files to disk, convert each XML structure (new_root) to a byte-encoded XML string (xml_string = ET.tostring(new_root, encoding='utf-8', method='xml')).
+Sending Messages to IBM MQ:
+
+Open a queue (put_queue = pymqi.Queue(qmgr, queue_name)).
+Send each XML message (put_queue.put(xml_string)).
+Close the queue (put_queue.close()).
+Disconnect from IBM MQ:
+
+Disconnect from the queue manager once all messages are sent (qmgr.disconnect()).
+--------------------------
+
+# Converting an XML file into a message that can be sent to IBM MQ (Message Queue) involves several steps, primarily focused on preparing the XML content as a string that conforms to the expected format for message transmission. 
+Here’s a detailed breakdown of how this conversion process typically works in the context of Python and IBM MQ:
+
+Steps to Convert XML File into Message:
+Parse XML File:
+
+Use a library like xml.etree.ElementTree in Python to parse the XML file and extract its content.
+Prepare XML Content:
+
+Convert the parsed XML data structure (DOM tree) into a string format that represents the XML document. This can be achieved using the ElementTree.tostring() method, which serializes the XML element and its sub-elements into a byte-encoded XML string.
+Send XML as Message:
+
+Use the messaging library (such as pymqi for IBM MQ) to establish a connection to the queue manager and queue.
+Create a message object or directly send the XML content as the payload of the message.
+Ensure that the XML content is properly formatted and encoded according to the requirements of the messaging protocol (such as UTF-8 encoding).
