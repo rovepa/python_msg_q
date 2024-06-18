@@ -39,3 +39,22 @@ EXCEPTION
         ROLLBACK;
 END generate_and_insert_xmls;
 /
+# Explanation:
+Procedure Setup:
+
+The procedure is named generate_and_insert_xmls.
+Loop through Records:
+
+Iterates from 1 to 500 using a simple FOR loop (FOR i IN 1..500 LOOP).
+XML Construction and Insertion:
+
+Constructs XML data directly within the INSERT INTO statement:
+sql
+Copy code
+INSERT INTO xml_table (xml_data)
+VALUES (XMLTYPE('<root><a>ValueA</a><b>ValueB</b><c>' || TO_CHAR(100 + (i - 1) * 100) || '</c></root>'));
+<a> and <b> elements have static values (ValueA and ValueB).
+<c> element's value increments by 100 for each iteration of the loop (100 + (i - 1) * 100).
+XMLTYPE:
+
+XMLTYPE(...) constructor converts the concatenated string into an Oracle XMLTYPE object, suitable for insertion into the xml_table.
