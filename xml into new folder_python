@@ -1,4 +1,4 @@
-# effective way to xml file has a,b,c elements. we need to generate 50000 xml files. a,b value should be same and c value should be doubled every time and store in a new folder.
+# effective way to xml file has a,b,c elements. we need to generate 50000 xml files. a,b value should be same and c value should be doubled every time and store in a new folder,,
 
 import os
 import xml.etree.ElementTree as ET
