@@ -1,0 +1,47 @@
+-- Create a stored procedure to update XML data in the table
+CREATE OR REPLACE PROCEDURE update_xml_data_proc AS
+    -- Cursor to fetch XML data
+    CURSOR xml_data_cursor IS
+        SELECT xml_data -- Replace with actual column name holding XML data
+        FROM xml_data_table FOR UPDATE; -- Replace with actual table name
+
+    -- Variables to store XML elements
+    v_xml_data XMLTYPE;
+    v_value_a VARCHAR2(100);
+    v_value_b VARCHAR2(100);
+    v_base_value_c NUMBER := 100; -- Initial value for element c
+
+    -- Variables for XML update
+    v_updated_xml XMLTYPE;
+BEGIN
+    -- Open cursor and loop through XML data
+    FOR xml_rec IN xml_data_cursor LOOP
+        v_xml_data := xml_rec.xml_data;
+        
+        -- Extract values of elements a and b (assuming they are text values)
+        v_value_a := XMLType(v_xml_data).extract('//a/text()').getStringVal();
+        v_value_b := XMLType(v_xml_data).extract('//b/text()').getStringVal();
+
+        -- Update XML data, incrementing c by 100 each time
+        FOR i IN 1..500 LOOP
+            -- Create new XML with elements a, b, and c
+            v_updated_xml := XMLType('<root><a>' || v_value_a || '</a><b>' || v_value_b || '</b><c>' || (v_base_value_c + (i - 1) * 100) || '</c></root>');
+            
+            -- Update XML data in the table
+            UPDATE xml_data_table
+            SET xml_data = v_updated_xml
+            WHERE CURRENT OF xml_data_cursor;
+            
+            DBMS_OUTPUT.PUT_LINE('Updated XML data for row: ' || xml_rec.xml_data);
+
+            -- Commit after each update (optional: consider transaction management)
+            COMMIT;
+        END LOOP;
+    END LOOP;
+    
+    DBMS_OUTPUT.PUT_LINE('XML data update complete.');
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+END update_xml_data_proc;
+/
