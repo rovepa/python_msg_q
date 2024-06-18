@@ -59,7 +59,7 @@ public class XMLGenerator {
                 rootElement.appendChild(newElementB);
 
                 Element newElementC = newDoc.createElement("c");
-                newElementC.appendChild(newDoc.createTextNode(String.valueOf(baseValueC * i)));
+                newElementC.appendChild(newDoc.createTextNode(String.valueOf(baseValueC *(2 ** (i - 1))));
                 rootElement.appendChild(newElementC);
 
                 // Write the content into an XML file
