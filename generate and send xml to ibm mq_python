@@ -1,4 +1,4 @@
-# To store the generated XML files in IBM MQ (Message Queue), you typically convert each XML file into a message and then send that message to a queue in IBM MQ.
+# To store the generated XML files in IBM MQ (Message Queue),, you typically convert each XML file into a message and then send that message to a queue in IBM MQ.
 
 import pymqi
 import os
