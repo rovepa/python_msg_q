@@ -1,0 +1,111 @@
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import java.io.File;
+
+public class XMLGenerator {
+
+    public static void main(String[] args) {
+        try {
+            // Path to your base XML file
+            String baseXmlFilePath = "base.xml";
+            // Folder to save generated XML files
+            String outputFolder = "output";
+
+            // Create the output folder if it doesn't exist
+            File folder = new File(outputFolder);
+            if (!folder.exists()) {
+                folder.mkdir();
+            }
+
+            // Parse the base XML file
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(new File(baseXmlFilePath));
+            doc.getDocumentElement().normalize();
+
+            // Get the values of elements a, b, and c from the base XML
+            Element elementA = (Element) doc.getElementsByTagName("a").item(0);
+            Element elementB = (Element) doc.getElementsByTagName("b").item(0);
+            Element elementC = (Element) doc.getElementsByTagName("c").item(0);
+
+            String valueA = elementA.getTextContent();
+            String valueB = elementB.getTextContent();
+            int baseValueC = Integer.parseInt(elementC.getTextContent());
+
+            // Set up the XML transformer for writing files
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+
+            for (int i = 1; i <= 50000; i++) {
+                // Create a new Document for each XML
+                Document newDoc = dBuilder.newDocument();
+                Element rootElement = newDoc.createElement("root");
+                newDoc.appendChild(rootElement);
+
+                // Create elements a, b, and c
+                Element newElementA = newDoc.createElement("a");
+                newElementA.appendChild(newDoc.createTextNode(valueA));
+                rootElement.appendChild(newElementA);
+
+                Element newElementB = newDoc.createElement("b");
+                newElementB.appendChild(newDoc.createTextNode(valueB));
+                rootElement.appendChild(newElementB);
+
+                Element newElementC = newDoc.createElement("c");
+                newElementC.appendChild(newDoc.createTextNode(String.valueOf(baseValueC * i)));
+                rootElement.appendChild(newElementC);
+
+                // Write the content into an XML file
+                String filePath = outputFolder + File.separator + "generatedXML" + i + ".xml";
+                DOMSource source = new DOMSource(newDoc);
+                StreamResult result = new StreamResult(new File(filePath));
+                transformer.transform(source, result);
+
+                // Optionally, print progress
+                if (i % 1000 == 0) {
+                    System.out.println("Generated " + i + " XML files");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+# Explanation:
+Base XML File (base.xml):
+
+Ensure you have a base XML file with the required structure, for example:
+xml
+Copy code
+<root>
+    <a>valueA</a>
+    <b>valueB</b>
+    <c>1</c>
+</root>
+Java Code:
+
+Set File Paths: Define the path to the base XML file and the output folder where generated XML files will be saved.
+Create Output Folder: Create the output folder if it doesn't exist.
+Read Base XML: Parse the base XML file and normalize it.
+Extract Values: Extract the values of elements a, b, and c from the base XML.
+Set Up Transformer: Set up the transformer for writing XML files to avoid repeated setup overhead.
+Generate New XML Files: For each iteration from 1 to 50,000, create a new XML file:
+Elements a and b have the same values as in the base XML.
+Element c's value is doubled based on the iteration number.
+Write to File: Write the new XML document to a file named generatedXML<i>.xml, where <i> is the iteration number.
+Progress Reporting: Print progress every 1000 files to track the generation process.
+Performance Considerations:
+Minimize Repeated Operations: Initializing the document builder and transformer once reduces overhead.
+Efficient I/O Operations: Writing files directly without excessive memory usage ensures better performance.
+Progress Reporting: Printing progress every 1000 files helps track the generation process without overwhelming the console with messages.
+Notes:
+Update the baseXmlFilePath and outputFolder to your desired paths.
+This code assumes a simple base XML structure and may need adjustments if your XML is more complex. Ensure to adjust the element extraction and writing logic accordingly.
