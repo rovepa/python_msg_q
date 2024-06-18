@@ -21,6 +21,12 @@ EXCEPTION
         ROLLBACK;
 END generate_and_insert_xmls;
 /
+
+BEGIN
+    generate_and_insert_xmls;
+END;
+/
+
 ----------------------------------------
 
 Breakdown:
